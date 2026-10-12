@@ -5,19 +5,29 @@
   "type": "module",
   "scripts": {
     "dev": "node --env-file-if-exists=.env --import tsx --watch src/index.ts",
-    "build": "tsc",
-    "start": "node --env-file-if-exists=.env dist/index.js"
+    "build": "prisma generate && tsc",
+    "start": "node --env-file-if-exists=.env dist/index.js",
+    "postinstall": "prisma generate",
+    "db:dev": "prisma dev --name eagle-eye --port 51213 --db-port 51214 --shadow-db-port 51215",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:deploy": "prisma migrate deploy",
+    "db:stop": "prisma dev stop eagle-eye"
   },
   "engines": {
     "node": ">=24.0.0"
   },
   "packageManager": "pnpm@11.25.0",
   "dependencies": {
+    "@prisma/adapter-pg": "^7.10.0",
+    "@prisma/client": "^7.10.0",
     "express": "^5.3.0"
   },
   "devDependencies": {
     "@types/express": "^5.0.6",
     "@types/node": "^24.19.2",
+    "dotenv": "^17.4.2",
+    "prisma": "^7.10.0",
     "tsx": "^4.23.15",
     "typescript": "~6.0.3"
   }
