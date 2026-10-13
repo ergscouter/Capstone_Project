@@ -1,4 +1,6 @@
-# Campus Buddy (Digital Campus Twin)
+# Capstone_Project
+
+## Campus Buddy (Digital Campus Twin)
 
 A web app that helps UNT students plan their day across campus. Team: DRAM Dredgers (CSCE 4901, Team 1 A).
 
