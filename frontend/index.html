@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Campus Buddy</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topbar">
+    <h1>Campus Buddy</h1>
+    <form id="search-form" role="search">
+      <input id="search-input" type="search" placeholder="Search buildings by name or code" aria-label="Search buildings">
+      <button type="submit">Search</button>
+    </form>
+    <ul id="results" aria-live="polite"></ul>
+  </header>
+
+  <main class="layout">
+    <div id="map" aria-label="Campus map"></div>
+    <aside id="details" aria-live="polite">
+      <p>Select a building on the map or search for one to see its details.</p>
+    </aside>
+  </main>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,107 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  color: #1d1d1f;
+}
+
+.topbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: #00853e; /* UNT green */
+  color: #fff;
+}
+
+.topbar h1 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+#search-form {
+  display: flex;
+  gap: 0.5rem;
+  flex: 1 1 280px;
+}
+
+#search-input {
+  flex: 1;
+  padding: 0.4rem 0.6rem;
+  font-size: 1rem;
+  border: none;
+  border-radius: 4px;
+}
+
+button {
+  padding: 0.4rem 0.8rem;
+  font-size: 0.95rem;
+  border: none;
+  border-radius: 4px;
+  background: #fff;
+  color: #00853e;
+  cursor: pointer;
+}
+
+#results {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+}
+
+#results li + li {
+  margin-top: 0.25rem;
+}
+
+#results button {
+  width: 100%;
+  text-align: left;
+}
+
+.layout {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 110px);
+  min-height: 420px;
+}
+
+#map {
+  flex: 1 1 60%;
+}
+
+#details {
+  flex: 1 1 40%;
+  padding: 1rem;
+  overflow-y: auto;
+  border-top: 1px solid #ddd;
+}
+
+#details h2 {
+  margin-top: 0;
+}
+
+#details dt {
+  font-weight: 600;
+  margin-top: 0.5rem;
+}
+
+#details dd {
+  margin: 0;
+}
+
+@media (min-width: 900px) {
+  .layout {
+    flex-direction: row;
+  }
+
+  #details {
+    flex: 0 0 340px;
+    border-top: none;
+    border-left: 1px solid #ddd;
+  }
+}
