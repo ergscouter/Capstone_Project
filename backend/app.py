@@ -6,16 +6,19 @@ from pathlib import Path
 
 from flask import Flask, abort, jsonify, request, send_from_directory
 
+from assistant import Parser
 from buildings import DEFAULT_CSV_PATH, BuildingIndex
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 FRONTEND_DIR = PROJECT_ROOT / "frontend"
 MAX_QUERY_LENGTH = 100
+MAX_QUESTION_LENGTH = 300
 
 
 def create_app(index: BuildingIndex | None = None) -> Flask:
     app = Flask(__name__)
     buildings = index if index is not None else BuildingIndex.from_csv()
+    parser = Parser(buildings.all())
 
     @app.get("/")
     def home():
@@ -42,6 +45,18 @@ def create_app(index: BuildingIndex | None = None) -> Flask:
         if len(query) > MAX_QUERY_LENGTH:
             abort(400, description="Search text is too long")
         return jsonify([b.to_dict() for b in buildings.search(query)])
+
+    @app.post("/api/ask")
+    def ask():
+        """Parse a typed question into an intent. Body: {"text": ..., "pending": <previous result>}."""
+        payload = request.get_json(silent=True) or {}
+        text = payload.get("text")
+        if not isinstance(text, str) or not text.strip():
+            abort(400, description="Send the question as 'text'")
+        if len(text) > MAX_QUESTION_LENGTH:
+            abort(400, description="Question is too long")
+        result = parser.parse(text, pending=payload.get("pending"))
+        return jsonify(result.to_dict())
 
     @app.get("/<path:filename>")
     def static_files(filename: str):
