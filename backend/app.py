@@ -49,7 +49,9 @@ def create_app(index: BuildingIndex | None = None) -> Flask:
     @app.post("/api/ask")
     def ask():
         """Parse a typed question into an intent. Body: {"text": ..., "pending": <previous result>}."""
-        payload = request.get_json(silent=True) or {}
+        payload = request.get_json(silent=True)
+        if not isinstance(payload, dict):
+            abort(400, description='Send a JSON object like {"text": "..."}')
         text = payload.get("text")
         if not isinstance(text, str) or not text.strip():
             abort(400, description="Send the question as 'text'")

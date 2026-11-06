@@ -38,7 +38,7 @@ NICKNAMES: dict[str, tuple[str, ...]] = {
     "0113": ("essc", "eagle student services", "eagle student services center"),
     "0108": ("gab", "general academic"),
     "0156": ("blb", "business building", "business leadership"),
-    "0160": ("eesat", "eesat building"),
+    "0160": ("eesat", "eesat building", "environmental science", "environmental science building", "environmental science bldg", "env sci"),
     "0190": ("discovery park", "dp"),
     "0118": ("pohl", "pohl rec", "rec center", "the rec", "rec"),
     "0129": ("pac", "performing arts"),
@@ -54,10 +54,16 @@ FUZZY_CUTOFF = 0.85
 MIN_FUZZY_CHARS = 5
 CODE_RE = re.compile(r"^\d{4}$")
 
+# Articles that can be stripped from building aliases.
+ARTICLES = frozenset({"a", "an", "the"})
+
+def _strip_articles(alias: str) -> str:
+    first, _, rest = alias.partition(" ")
+    return rest if first in ARTICLES and rest else alias
 
 def aliases_for_name(name: str) -> set[str]:
     """Derive the ways a building's official name might be typed."""
-    base = normalize(name)
+    base = _strip_articles(normalize(name))
     aliases = {base}
     words = base.split()
     if len(words) > 1 and words[-1] in ("bldg", "building"):
@@ -93,14 +99,14 @@ class BuildingMatcher:
         self._alias_to_code: dict[str, str] = {}
         # Official full names win over derived short forms; nicknames win over both.
         for b in named:
-            self._alias_to_code.setdefault(normalize(b.name), b.code)
+            self._alias_to_code.setdefault(_strip_articles(normalize(b.name)), b.code)
         for b in named:
             for alias in aliases_for_name(b.name):
                 self._alias_to_code.setdefault(alias, b.code)
         for code, nicknames in NICKNAMES.items():
             if code in self._by_code:
                 for alias in nicknames:
-                    self._alias_to_code[normalize(alias)] = code
+                    self._alias_to_code[_strip_articles(normalize(alias))] = code
 
         self._by_length: dict[int, list[str]] = {}
         for alias in self._alias_to_code:
