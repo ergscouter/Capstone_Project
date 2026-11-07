@@ -41,6 +41,16 @@ python backend/app.py
 
 4. Open http://localhost:5000 in a browser.
 
+## Question parser
+
+`backend/assistant/` turns typed questions into structured intents, such as `route(origin, destination, time)` or `simulate_event(venue, attendance)`. It uses no LLM and has no dependencies beyond Python. Typos are handled with fuzzy matching.
+
+- `catalog.py`: the supported question types, their parameters, and keyword phrases. Add an intent here to support a new question.
+- `entities.py`: finds building names (including nicknames like "the union" or "GAB"), times, days, and crowd sizes.
+- `POST /api/ask` with `{"text": "..."}` returns the intent. If a required parameter is missing, the response includes a `follow_up` question. Send the response back as `pending` along with the user's answer.
+- Try it in a terminal: `python backend/assistant`
+- The labeled sample questions are in `tests/test_assistant.py`. Add real questions there as you collect them.
+
 ## Running the tests
 
 ```bash
