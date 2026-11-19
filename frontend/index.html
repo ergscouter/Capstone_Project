@@ -29,6 +29,7 @@
         <p>Add your class meetings below. Use the same course code to add another meeting, such as a lab.</p>
 
         <form id="schedule-form">
+          <p id="schedule-edit-status" class="schedule-note" role="status" hidden></p>
           <label for="course-code">Course code</label>
           <input id="course-code" name="courseCode" type="text" placeholder="CSCE 4901" maxlength="30" required>
 
@@ -68,7 +69,10 @@
           <label for="meeting-room">Room (optional)</label>
           <input id="meeting-room" name="room" type="text" maxlength="30">
 
-          <button id="schedule-add" type="submit" disabled>Add class meeting</button>
+          <div class="schedule-form-actions">
+            <button id="schedule-add" type="submit" disabled>Add class meeting</button>
+            <button id="schedule-cancel" type="button" hidden>Cancel editing</button>
+          </div>
           <p id="schedule-feedback" role="status" aria-atomic="true"></p>
         </form>
 

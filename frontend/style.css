@@ -165,6 +165,33 @@ button {
   cursor: not-allowed;
 }
 
+.schedule-form-actions,
+.meeting-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.meeting-actions {
+  margin: 0.5rem 0 0.75rem;
+}
+
+#schedule-cancel,
+.meeting-actions button {
+  border: 1px solid #00853e;
+}
+
+.meeting-actions .delete-meeting {
+  color: #a11b1b;
+  border-color: #a11b1b;
+}
+
+.meeting-actions button:disabled {
+  color: #666;
+  border-color: #888;
+  cursor: not-allowed;
+}
+
 #schedule-feedback,
 #schedule-buildings-status {
   margin: 0;

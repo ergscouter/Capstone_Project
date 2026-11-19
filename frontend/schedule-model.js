@@ -79,3 +79,51 @@ export function restoreCourse(input) {
   const course = normalizeCourse(input);
   return { id: readText(input.id, "the saved course ID", 100, true), ...course };
 }
+
+export function sameMeeting(first, second) {
+  return first.days.join(",") === second.days.join(",")
+    && first.startTime === second.startTime
+    && first.endTime === second.endTime
+    && first.buildingCode === second.buildingCode
+    && first.room.toLowerCase() === second.room.toLowerCase();
+}
+
+function findMeeting(courses, courseId, meetingIndex) {
+  const course = courses.find(item => item.id === courseId);
+  if (!course || !Number.isInteger(meetingIndex)
+      || meetingIndex < 0 || meetingIndex >= course.meetings.length) {
+    throw new Error("That class meeting could not be found.");
+  }
+  return course;
+}
+
+export function updateCourseMeeting(courses, courseId, meetingIndex, input) {
+  const existing = findMeeting(courses, courseId, meetingIndex);
+  const changes = normalizeCourse(input);
+  if (changes.meetings.length !== 1) {
+    throw new Error("Edit one meeting at a time.");
+  }
+  if (courses.some(course => course.id !== courseId && course.courseCode === changes.courseCode)) {
+    throw new Error(`Another course already uses ${changes.courseCode}. Choose a different course code.`);
+  }
+  const meeting = changes.meetings[0];
+  if (existing.meetings.some((item, index) => index !== meetingIndex && sameMeeting(item, meeting))) {
+    throw new Error("That meeting is already on your schedule.");
+  }
+
+  // Keep the course ID and other meetings when updating this one.
+  const updated = {
+    ...existing,
+    courseCode: changes.courseCode,
+    title: changes.title,
+    meetings: existing.meetings.map((item, index) => index === meetingIndex ? meeting : item),
+  };
+  return courses.map(course => course.id === courseId ? updated : course);
+}
+
+export function removeCourseMeeting(courses, courseId, meetingIndex) {
+  const existing = findMeeting(courses, courseId, meetingIndex);
+  const meetings = existing.meetings.filter((item, index) => index !== meetingIndex);
+  if (meetings.length === 0) return courses.filter(course => course.id !== courseId);
+  return courses.map(course => course.id === courseId ? { ...course, meetings } : course);
+}

@@ -1,8 +1,11 @@
-import { createCourse, MEETING_DAYS } from "./schedule-model.js";
+import {
+  createCourse, MEETING_DAYS, removeCourseMeeting, sameMeeting, updateCourseMeeting,
+} from "./schedule-model.js";
 import { loadSchedule, saveSchedule } from "./schedule-storage.js";
 
 let courses = [];
 let savingPaused = false;
+let editing = null;
 const buildingsByCode = new Map();
 const form = document.getElementById("schedule-form");
 const buildingSelect = document.getElementById("meeting-building");
@@ -12,6 +15,22 @@ const feedback = document.getElementById("schedule-feedback");
 const courseList = document.getElementById("schedule-list");
 const emptyMessage = document.getElementById("schedule-empty");
 const storageStatus = document.getElementById("schedule-storage-status");
+const editStatus = document.getElementById("schedule-edit-status");
+const cancelButton = document.getElementById("schedule-cancel");
+
+function showFeedback(message, isError = false) {
+  feedback.textContent = message;
+  feedback.classList.toggle("error", isError);
+}
+
+function resetScheduleForm() {
+  editing = null;
+  form.reset();
+  addButton.textContent = "Add class meeting";
+  cancelButton.hidden = true;
+  editStatus.hidden = true;
+  editStatus.textContent = "";
+}
 
 function showStorageStatus(message, isError = false) {
   storageStatus.textContent = message;
@@ -67,7 +86,7 @@ function renderSchedule() {
       ? `${course.courseCode} - ${course.title}` : course.courseCode;
     const meetings = document.createElement("ul");
 
-    for (const meeting of course.meetings) {
+    for (const [meetingIndex, meeting] of course.meetings.entries()) {
       const row = document.createElement("li");
       const days = MEETING_DAYS.filter(day => meeting.days.includes(day.value))
         .map(day => day.label).join(", ");
@@ -77,7 +96,23 @@ function renderSchedule() {
       const building = buildingsByCode.get(meeting.buildingCode);
       const location = building?.name ?? `Building ${meeting.buildingCode}`;
       where.textContent = meeting.room ? `${location}, room ${meeting.room}` : location;
-      row.append(when, where);
+      const actions = document.createElement("div");
+      actions.className = "meeting-actions";
+      const editButton = document.createElement("button");
+      editButton.type = "button";
+      editButton.textContent = "Edit meeting";
+      editButton.setAttribute("aria-label", `Edit ${course.courseCode}, ${when.textContent}`);
+      editButton.disabled = editing !== null || buildingsByCode.size === 0;
+      editButton.addEventListener("click", () => startEditing(course.id, meetingIndex));
+      const deleteButton = document.createElement("button");
+      deleteButton.type = "button";
+      deleteButton.textContent = "Delete meeting";
+      deleteButton.className = "delete-meeting";
+      deleteButton.setAttribute("aria-label", `Delete ${course.courseCode}, ${when.textContent}`);
+      deleteButton.disabled = editing !== null;
+      deleteButton.addEventListener("click", () => deleteMeeting(course.id, meetingIndex));
+      actions.append(editButton, deleteButton);
+      row.append(when, where, actions);
       meetings.append(row);
     }
 
@@ -86,18 +121,61 @@ function renderSchedule() {
   }
 }
 
-function sameMeeting(first, second) {
-  return first.days.join(",") === second.days.join(",")
-    && first.startTime === second.startTime
-    && first.endTime === second.endTime
-    && first.buildingCode === second.buildingCode
-    && first.room.toLowerCase() === second.room.toLowerCase();
+function startEditing(courseId, meetingIndex) {
+  const course = courses.find(item => item.id === courseId);
+  const meeting = course?.meetings[meetingIndex];
+  if (!meeting || editing !== null) return;
+
+  editing = { courseId, meetingIndex };
+  form.elements.namedItem("courseCode").value = course.courseCode;
+  form.elements.namedItem("title").value = course.title;
+  form.elements.namedItem("startTime").value = meeting.startTime;
+  form.elements.namedItem("endTime").value = meeting.endTime;
+  buildingSelect.value = meeting.buildingCode;
+  form.elements.namedItem("room").value = meeting.room;
+  for (const checkbox of form.querySelectorAll('input[name="days"]')) {
+    checkbox.checked = meeting.days.includes(checkbox.value);
+  }
+
+  editStatus.textContent = `Editing a meeting for ${course.courseCode}. `
+    + "Course code and title changes apply to all meetings for this course. "
+    + "Day, time, building, and room changes apply to this meeting.";
+  editStatus.hidden = false;
+  addButton.textContent = "Save changes";
+  cancelButton.hidden = false;
+  showFeedback("");
+  renderSchedule();
+  document.getElementById("course-code").focus();
 }
+
+function deleteMeeting(courseId, meetingIndex) {
+  const course = courses.find(item => item.id === courseId);
+  const meeting = course?.meetings[meetingIndex];
+  if (!meeting || editing !== null) return;
+  const days = MEETING_DAYS.filter(day => meeting.days.includes(day.value))
+    .map(day => day.label).join(", ");
+  const message = `Delete the ${days}, ${formatTime(meeting.startTime)} - `
+    + `${formatTime(meeting.endTime)} meeting for ${course.courseCode}?`
+    + (course.meetings.length === 1 ? " This will also remove the course from your schedule." : "");
+  if (!window.confirm(message)) return;
+
+  courses = removeCourseMeeting(courses, courseId, meetingIndex);
+  saveCurrentSchedule();
+  renderSchedule();
+  showFeedback(`Deleted the meeting for ${course.courseCode}.`);
+  document.getElementById("course-code").focus();
+}
+
+cancelButton.addEventListener("click", () => {
+  resetScheduleForm();
+  renderSchedule();
+  showFeedback("Editing canceled.");
+  document.getElementById("course-code").focus();
+});
 
 form.addEventListener("submit", event => {
   event.preventDefault();
-  feedback.textContent = "";
-  feedback.classList.remove("error");
+  showFeedback("");
   const values = new FormData(form);
 
   try {
@@ -117,25 +195,29 @@ form.addEventListener("submit", event => {
       throw new Error("Choose a building from the list.");
     }
 
-    const existing = courses.find(item => item.courseCode === course.courseCode);
-    if (existing) {
-      if (existing.meetings.some(item => sameMeeting(item, meeting))) {
-        throw new Error("That meeting is already on your schedule.");
-      }
-      existing.meetings.push(meeting);
-      if (course.title) existing.title = course.title;
+    const wasEditing = editing !== null;
+    if (wasEditing) {
+      courses = updateCourseMeeting(courses, editing.courseId, editing.meetingIndex, course);
     } else {
-      courses.push(course);
+      const existing = courses.find(item => item.courseCode === course.courseCode);
+      if (existing) {
+        if (existing.meetings.some(item => sameMeeting(item, meeting))) {
+          throw new Error("That meeting is already on your schedule.");
+        }
+        existing.meetings.push(meeting);
+        if (course.title) existing.title = course.title;
+      } else {
+        courses.push(course);
+      }
     }
 
     saveCurrentSchedule();
+    resetScheduleForm();
     renderSchedule();
-    form.reset();
-    feedback.textContent = `Added a meeting for ${course.courseCode}.`;
+    showFeedback(`${wasEditing ? "Updated" : "Added"} a meeting for ${course.courseCode}.`);
     document.getElementById("course-code").focus();
   } catch (error) {
-    feedback.textContent = error.message;
-    feedback.classList.add("error");
+    showFeedback(error.message, true);
   }
 });
 

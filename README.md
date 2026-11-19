@@ -17,6 +17,7 @@ What works today:
 - Search by building name or code, with zoom to the building
 - Manual class entry and a schedule list, including multiple meeting patterns per course
 - Automatic schedule saving and restoration in the same browser
+- Editing and deleting individual class meetings
 
 ## Schedule entry
 
@@ -25,9 +26,19 @@ days, start/end times, building, and optional room. Enter the same course code
 again to add another meeting pattern for that course, such as a lecture and lab.
 Identical meetings are rejected.
 
+Choose **Edit meeting** to fill the form with that meeting's details, then choose
+**Save changes** or **Cancel editing**. Course code and title changes apply to
+the whole course; days, times, building, and room apply to the selected meeting.
+Renaming a course to another existing course's code is rejected. Other meeting
+actions are disabled while editing so meeting positions remain unchanged.
+
+Choose **Delete meeting** and confirm to remove one meeting. Deleting the last
+meeting also removes the course. Canceling an edit or deletion leaves saved
+classes unchanged. Additions, edits, and deletions all use automatic saving.
+
 This version supports scheduled, in-person meetings. Classes save automatically
-after each addition and return when the page is refreshed or reopened in the
-same browser profile at the same site address. Editing is a next step.
+after each addition, edit, or deletion and return when the page is refreshed or
+reopened in the same browser profile at the same site address.
 Schedule entries are not sent to the server, and no Eagle Eye account is needed.
 
 `frontend/schedule-storage.js` handles browser `localStorage` separately from the
