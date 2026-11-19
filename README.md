@@ -15,6 +15,26 @@ What works today:
 - Flask API that loads UNT buildings from CSV (`/api/buildings`, `/api/buildings/<code>`, `/api/search?q=`)
 - Leaflet map of campus buildings with click-to-view details
 - Search by building name or code, with zoom to the building
+- Manual class entry and a schedule list, including multiple meeting patterns per course
+
+## Schedule entry
+
+Use **My Schedule** beside the map to add a course code, optional title, meeting
+days, start/end times, building, and optional room. Enter the same course code
+again to add another meeting pattern for that course, such as a lecture and lab.
+Identical meetings are rejected.
+
+This first version supports scheduled, in-person meetings. Classes stay in page
+memory and are cleared on refresh; automatic saving and editing are next steps.
+Schedule entries are not sent to the server, and no Eagle Eye account is needed.
+
+`frontend/schedule-model.js` defines the shared course format: `id`, `courseCode`,
+`title`, and a `meetings` array. Each meeting has `days` (`mon` through `sun`),
+`startTime`/`endTime` (24-hour `HH:mm` campus clock times), `buildingCode`, and
+`room`. Building codes remain strings so leading zeroes are preserved. The form
+uses this model independently of the map code. A future extension or other
+importer can convert its output to the same format without replacing the schedule
+screen. Importing, online/TBA meetings, and term dates are not implemented yet.
 
 ## Project layout
 

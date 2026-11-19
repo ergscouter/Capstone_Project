@@ -66,22 +66,27 @@ button {
 .layout {
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 110px);
   min-height: 420px;
 }
 
 #map {
   flex: 1 1 60%;
+  min-height: 360px;
 }
 
-#details {
+.sidebar {
   flex: 1 1 40%;
-  padding: 1rem;
-  overflow-y: auto;
+  min-width: 0;
   border-top: 1px solid #ddd;
 }
 
-#details h2 {
+#details,
+#schedule {
+  padding: 1rem;
+}
+
+#details h2,
+#schedule h2 {
   margin-top: 0;
 }
 
@@ -94,13 +99,121 @@ button {
   margin: 0;
 }
 
+#schedule {
+  border-top: 1px solid #ddd;
+}
+
+#schedule-form {
+  display: grid;
+  gap: 0.5rem;
+}
+
+#schedule-form > label,
+.meeting-times label {
+  font-weight: 600;
+}
+
+#schedule-form input:not([type="checkbox"]),
+#schedule-form select {
+  width: 100%;
+  min-width: 0;
+  padding: 0.5rem;
+  border: 1px solid #888;
+  border-radius: 4px;
+  font: inherit;
+}
+
+#schedule-form fieldset {
+  min-width: 0;
+  margin: 0.25rem 0;
+  padding: 0.5rem;
+  border: 1px solid #888;
+  border-radius: 4px;
+}
+
+.meeting-days {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.meeting-days label {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.meeting-times {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.meeting-times label {
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+#schedule-add {
+  padding: 0.6rem;
+  background: #00853e;
+  color: #fff;
+}
+
+#schedule-add:disabled {
+  background: #666;
+  cursor: not-allowed;
+}
+
+#schedule-feedback,
+#schedule-buildings-status {
+  margin: 0;
+}
+
+.error {
+  color: #a11b1b;
+}
+
+.schedule-note {
+  color: #555;
+  font-size: 0.9rem;
+}
+
+#schedule-list {
+  list-style: none;
+  padding: 0;
+}
+
+#schedule-list > li {
+  margin-top: 0.75rem;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+#schedule-list h4 {
+  margin: 0 0 0.5rem;
+  overflow-wrap: anywhere;
+}
+
+#schedule-list ul {
+  padding-left: 1.25rem;
+}
+
+#schedule-list p {
+  margin: 0.25rem 0;
+  overflow-wrap: anywhere;
+}
+
 @media (min-width: 900px) {
   .layout {
     flex-direction: row;
+    height: calc(100vh - 110px);
   }
 
-  #details {
-    flex: 0 0 340px;
+  .sidebar {
+    flex: 0 0 400px;
+    overflow-y: auto;
     border-top: none;
     border-left: 1px solid #ddd;
   }
