@@ -189,7 +189,10 @@ class Parser:
         """Validate a previous result sent back by the client. Returns None if unusable."""
         if not isinstance(pending, dict):
             return None
-        intent = INTENTS_BY_NAME.get(pending.get("intent"))
+        intent_name = pending.get("intent")
+        if not isinstance(intent_name, str):
+            return None
+        intent = INTENTS_BY_NAME.get(intent_name)
         missing = pending.get("missing")
         if intent is None or not isinstance(missing, list) or not missing:
             return None
