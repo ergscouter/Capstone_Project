@@ -1,11 +1,15 @@
 import {
   createCourse, MEETING_DAYS, removeCourseMeeting, sameMeeting, updateCourseMeeting,
 } from "./schedule-model.js";
-import { loadSchedule, saveSchedule } from "./schedule-storage.js";
+import {
+  loadScheduleState, saveSchedule, SCHEDULE_STORAGE_KEY, ScheduleConflictError,
+} from "./schedule-storage.js";
 import { showBuildingOnMap } from "./map-navigation.js";
 
 let courses = [];
 let savingPaused = false;
+let savedSnapshot = null;
+let hasUnsavedChanges = false;
 let editing = null;
 let buildingsLoaded = false;
 let buildingLoadFailed = false;
@@ -42,7 +46,10 @@ function showStorageStatus(message, isError = false) {
 
 function restoreSavedSchedule() {
   try {
-    courses = loadSchedule();
+    const saved = loadScheduleState();
+    courses = saved.courses;
+    savedSnapshot = saved.snapshot;
+    hasUnsavedChanges = false;
     savingPaused = false;
     showStorageStatus("Classes save automatically in this browser on this device.");
   } catch {
@@ -50,7 +57,7 @@ function restoreSavedSchedule() {
     savingPaused = true;
     showStorageStatus(
       "Saved classes could not be opened. Existing saved data has been kept. "
-      + "Saving is paused; classes added here will be lost on refresh. "
+      + "Saving is paused; changes made here will be lost on refresh. "
       + "Check that browser storage is allowed, then refresh to try again.",
       true,
     );
@@ -58,12 +65,36 @@ function restoreSavedSchedule() {
   renderSchedule();
 }
 
+function refreshBeforeChange() {
+  if (savingPaused || hasUnsavedChanges) return;
+  const saved = loadScheduleState();
+  if (editing && saved.snapshot !== savedSnapshot) {
+    const latest = saved.courses.find(course => course.id === editing.courseId);
+    if (JSON.stringify(latest) !== editing.originalCourse) {
+      throw new Error("This course changed in another tab. Cancel editing and reopen the meeting.");
+    }
+  }
+  courses = saved.courses;
+  savedSnapshot = saved.snapshot;
+}
+
 function saveCurrentSchedule() {
+  hasUnsavedChanges = true;
   if (savingPaused) return;
   try {
-    saveSchedule(courses);
+    savedSnapshot = saveSchedule(courses, savedSnapshot);
+    hasUnsavedChanges = false;
     showStorageStatus("Schedule saved in this browser on this device.");
-  } catch {
+  } catch (error) {
+    if (error instanceof ScheduleConflictError) {
+      savingPaused = true;
+      showStorageStatus(
+        "Another tab changed the saved schedule. Your changes are still shown here, "
+        + "but saving is paused to keep that tab's changes. Refreshing will load the saved schedule.",
+        true,
+      );
+      return;
+    }
     showStorageStatus(
       "Your latest changes could not be saved. They will be lost on refresh. "
       + "Check that browser storage is allowed and has space available.",
@@ -169,11 +200,18 @@ function renderSchedule() {
 }
 
 function startEditing(courseId, meetingIndex) {
+  if (editing !== null) return;
+  try {
+    refreshBeforeChange();
+  } catch {
+    showFeedback("Saved classes could not be checked. Refresh the page before editing.", true);
+    return;
+  }
   const course = courses.find(item => item.id === courseId);
   const meeting = course?.meetings[meetingIndex];
   if (!meeting || editing !== null) return;
 
-  editing = { courseId, meetingIndex };
+  editing = { courseId, meetingIndex, originalCourse: JSON.stringify(course) };
   form.elements.namedItem("courseCode").value = course.courseCode;
   form.elements.namedItem("title").value = course.title;
   form.elements.namedItem("startTime").value = meeting.startTime;
@@ -206,16 +244,27 @@ function deleteMeeting(courseId, meetingIndex) {
     + (course.meetings.length === 1 ? " This will also remove the course from your schedule." : "");
   if (!window.confirm(message)) return;
 
-  courses = removeCourseMeeting(courses, courseId, meetingIndex);
-  saveCurrentSchedule();
-  renderSchedule();
-  showFeedback(`Deleted the meeting for ${course.courseCode}.`);
-  document.getElementById("course-code").focus();
+  try {
+    refreshBeforeChange();
+    const latest = courses.find(item => item.id === courseId);
+    if (JSON.stringify(latest) !== JSON.stringify(course)) {
+      throw new Error("This course changed in another tab. Review the updated meeting and try again.");
+    }
+    courses = removeCourseMeeting(courses, courseId, meetingIndex);
+    saveCurrentSchedule();
+    renderSchedule();
+    showFeedback(`Deleted the meeting for ${course.courseCode}.`);
+    document.getElementById("course-code").focus();
+  } catch (error) {
+    renderSchedule();
+    showFeedback(error.message, true);
+  }
 }
 
 cancelButton.addEventListener("click", () => {
   resetScheduleForm();
-  renderSchedule();
+  if (hasUnsavedChanges) renderSchedule();
+  else restoreSavedSchedule();
   showFeedback("Editing canceled.");
   document.getElementById("course-code").focus();
 });
@@ -242,6 +291,7 @@ form.addEventListener("submit", event => {
       throw new Error("Choose a building from the list.");
     }
 
+    refreshBeforeChange();
     const wasEditing = editing !== null;
     if (wasEditing) {
       courses = updateCourseMeeting(courses, editing.courseId, editing.meetingIndex, course);
@@ -264,6 +314,7 @@ form.addEventListener("submit", event => {
     showFeedback(`${wasEditing ? "Updated" : "Added"} a meeting for ${course.courseCode}.`);
     document.getElementById("course-code").focus();
   } catch (error) {
+    renderSchedule();
     showFeedback(error.message, true);
   }
 });
@@ -294,6 +345,27 @@ async function loadScheduleBuildings() {
   buildingsLoaded = true;
   renderSchedule();
 }
+
+window.addEventListener("storage", event => {
+  if (event.storageArea !== localStorage
+      || (event.key !== SCHEDULE_STORAGE_KEY && event.key !== null)) return;
+  if (editing) {
+    showStorageStatus(
+      "The saved schedule changed in another tab. Your current work is still shown here. "
+      + "Finish or cancel editing to check the latest saved classes.",
+      true,
+    );
+  } else if (hasUnsavedChanges) {
+    savingPaused = true;
+    showStorageStatus(
+      "Another tab changed the saved schedule. Your unsaved changes remain on this page. "
+      + "Saving is paused; refreshing will discard those changes and load the saved schedule.",
+      true,
+    );
+  } else {
+    restoreSavedSchedule();
+  }
+});
 
 restoreSavedSchedule();
 loadScheduleBuildings().catch(() => {

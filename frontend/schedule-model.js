@@ -57,8 +57,9 @@ function normalizeCourse(input) {
   if (!input || typeof input !== "object" || Array.isArray(input)) {
     throw new Error("Enter valid course details.");
   }
-  const courseCode = readText(input.courseCode, "a course code", 30, true)
+  const normalizedCode = readText(input.courseCode, "a course code", 30, true)
     .replace(/\s+/g, " ").toUpperCase();
+  const courseCode = readText(normalizedCode, "the course code", 30, true);
   if (!Array.isArray(input.meetings) || input.meetings.length === 0) {
     throw new Error("Add at least one class meeting.");
   }
