@@ -57,6 +57,11 @@ Schedule entries are not sent to the server, and no Eagle Eye account is needed.
 `frontend/schedule-storage.js` handles browser `localStorage` separately from the
 form. It stores a version number and the course list under `eagle-eye.schedule`,
 validates saved records before using them, and preserves each course ID.
+Before changing a schedule, the page checks for newer saved data from other tabs.
+Unrelated changes are kept, and editing a course that changed in another tab asks
+the student to cancel and reopen that meeting. Open tabs update their lists when
+another tab saves, while keeping any active form edits. A final saved-data check
+rejects a write if the saved value changed since it was read.
 If saved data cannot be opened, it is kept unchanged and saving pauses;
 the page shows a warning. Failed writes also show a warning rather than claiming
 that changes were saved.
@@ -86,8 +91,8 @@ docs/       Sprint notes
 
 ## Running it in VS Code
 
-1. Open the `campus-buddy` folder in VS Code.
-2. Copy `UNT_buildings.csv` from the project into `data/`.
+1. Open the `Capstone_Project` folder in VS Code.
+2. The provided buildings are in `data/UNT_buildings.csv`.
 3. In the VS Code terminal:
 
 ```bash
@@ -111,11 +116,31 @@ python backend/app.py
 
 ## Running the tests
 
+Install the development requirements to include browser checks:
+
 ```bash
-pytest
+python -m pip install -r requirements-dev.txt
+python -m pytest -q
 ```
 
-The tests use a small built-in sample, so they run without the CSV.
+Browser checks use a temporary local server, invented classes, and fresh browser
+profiles. They do not use myUNT or your personal browser data. On Windows they
+use the installed Microsoft Edge. On other systems install Chromium first with
+`python -m playwright install chromium`. To use that browser on Windows, set
+`EAGLE_EYE_BROWSER_CHANNEL=chromium` before running the tests.
+
+The browser tests need an internet connection for Leaflet and the basemap. They
+also simulate unavailable services and blocked or unreadable browser storage.
+Screenshots are written to `.test-artifacts/`, which is excluded from Git.
+
+To run just the backend/API checks:
+
+```bash
+python -m pytest -m "not browser" -q
+```
+
+Most backend tests use built-in sample data. The real-data parser checks and
+browser tests use the provided `data/UNT_buildings.csv`.
 
 ## Git workflow
 
