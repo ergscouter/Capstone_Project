@@ -18,7 +18,7 @@
   </header>
 
   <main class="layout">
-    <div id="map" aria-label="Campus map"></div>
+    <div id="map" aria-label="Campus map" tabindex="0"></div>
     <aside class="sidebar">
       <section id="details" aria-live="polite">
         <p>Select a building on the map or search for one to see its details.</p>
@@ -85,7 +85,7 @@
   </main>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="app.js"></script>
+  <script type="module" src="app.js"></script>
   <script type="module" src="schedule.js"></script>
 </body>
 </html>

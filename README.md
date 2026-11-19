@@ -18,6 +18,7 @@ What works today:
 - Manual class entry and a schedule list, including multiple meeting patterns per course
 - Automatic schedule saving and restoration in the same browser
 - Editing and deleting individual class meetings
+- Selecting a class meeting's building directly on the campus map
 
 ## Schedule entry
 
@@ -29,12 +30,24 @@ Identical meetings are rejected.
 Choose **Edit meeting** to fill the form with that meeting's details, then choose
 **Save changes** or **Cancel editing**. Course code and title changes apply to
 the whole course; days, times, building, and room apply to the selected meeting.
-Renaming a course to another existing course's code is rejected. Other meeting
-actions are disabled while editing so meeting positions remain unchanged.
+Renaming a course to another existing course's code is rejected. Other Edit and
+Delete buttons are disabled while editing so meeting positions remain unchanged.
 
 Choose **Delete meeting** and confirm to remove one meeting. Deleting the last
 meeting also removes the course. Canceling an edit or deletion leaves saved
 classes unchanged. Additions, edits, and deletions all use automatic saving.
+
+Choose **Show building on map** on a meeting to select and zoom to its building,
+open its label, and show its building details. The map is brought into view on
+smaller screens. Meetings without usable building coordinates show an unavailable
+message and a disabled map button. This selects the building; it does not locate
+the classroom inside it or calculate directions.
+
+`frontend/map-navigation.js` connects schedule buttons to the current map by
+building code. `frontend/app.js` registers its building-selection function and
+waits for its building data before handling a request. The schedule does not
+depend directly on Leaflet. Both files use browser JavaScript modules; a future
+map provider can register its own selection function through the same connector.
 
 This version supports scheduled, in-person meetings. Classes save automatically
 after each addition, edit, or deletion and return when the page is refreshed or

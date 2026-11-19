@@ -2,10 +2,13 @@ import {
   createCourse, MEETING_DAYS, removeCourseMeeting, sameMeeting, updateCourseMeeting,
 } from "./schedule-model.js";
 import { loadSchedule, saveSchedule } from "./schedule-storage.js";
+import { showBuildingOnMap } from "./map-navigation.js";
 
 let courses = [];
 let savingPaused = false;
 let editing = null;
+let buildingsLoaded = false;
+let buildingLoadFailed = false;
 const buildingsByCode = new Map();
 const form = document.getElementById("schedule-form");
 const buildingSelect = document.getElementById("meeting-building");
@@ -75,6 +78,49 @@ function formatTime(time) {
   return `${hour % 12 || 12}:${minutes} ${hour < 12 ? "AM" : "PM"}`;
 }
 
+function createMapControls(buildingCode, courseCode, building) {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.textContent = "Show building on map";
+  const name = building?.name ?? `Building ${buildingCode}`;
+  button.setAttribute("aria-label", `Show ${name} on the map for ${courseCode}`);
+  const hasMapLocation = Number.isFinite(building?.lat) && Number.isFinite(building?.lon);
+  button.disabled = !hasMapLocation;
+
+  const notice = document.createElement("p");
+  notice.className = "schedule-note";
+  notice.setAttribute("role", "status");
+  notice.hidden = hasMapLocation;
+  if (!hasMapLocation) {
+    if (buildingLoadFailed) {
+      notice.textContent = "Building locations could not be loaded. Refresh to try again.";
+    } else if (!buildingsLoaded) {
+      notice.textContent = "Loading building location...";
+    } else {
+      notice.textContent = building
+        ? "A map location is not available for this building."
+        : "This building is no longer in the campus building list.";
+    }
+  }
+
+  button.addEventListener("click", async () => {
+    button.disabled = true;
+    notice.hidden = false;
+    notice.classList.remove("error");
+    notice.textContent = "Opening building on the map...";
+    try {
+      const buildingName = await showBuildingOnMap(buildingCode);
+      notice.textContent = `Showing ${buildingName} on the map.`;
+    } catch (error) {
+      notice.textContent = error.message;
+      notice.classList.add("error");
+    } finally {
+      button.disabled = false;
+    }
+  });
+  return { button, notice };
+}
+
 function renderSchedule() {
   courseList.replaceChildren();
   emptyMessage.hidden = courses.length > 0;
@@ -98,6 +144,7 @@ function renderSchedule() {
       where.textContent = meeting.room ? `${location}, room ${meeting.room}` : location;
       const actions = document.createElement("div");
       actions.className = "meeting-actions";
+      const mapControls = createMapControls(meeting.buildingCode, course.courseCode, building);
       const editButton = document.createElement("button");
       editButton.type = "button";
       editButton.textContent = "Edit meeting";
@@ -111,8 +158,8 @@ function renderSchedule() {
       deleteButton.setAttribute("aria-label", `Delete ${course.courseCode}, ${when.textContent}`);
       deleteButton.disabled = editing !== null;
       deleteButton.addEventListener("click", () => deleteMeeting(course.id, meetingIndex));
-      actions.append(editButton, deleteButton);
-      row.append(when, where, actions);
+      actions.append(mapControls.button, editButton, deleteButton);
+      row.append(when, where, actions, mapControls.notice);
       meetings.append(row);
     }
 
@@ -244,12 +291,15 @@ async function loadScheduleBuildings() {
 
   buildingSelect.disabled = false;
   addButton.disabled = false;
+  buildingsLoaded = true;
   renderSchedule();
 }
 
 restoreSavedSchedule();
 loadScheduleBuildings().catch(() => {
+  buildingLoadFailed = true;
   buildingSelect.options[0].textContent = "Buildings unavailable";
   buildingStatus.textContent = "Could not load buildings. Refresh the page to try again.";
   buildingStatus.classList.add("error");
+  renderSchedule();
 });
