@@ -11,6 +11,9 @@ export const MEETING_DAYS = [
 const TIME_PATTERN = /^([01]\d|2[0-3]):[0-5]\d$/;
 
 function readText(value, label, maxLength, required = false) {
+  if (value != null && typeof value !== "string") {
+    throw new Error(`Use text for ${label}.`);
+  }
   const text = typeof value === "string" ? value.trim() : "";
   if (required && !text) throw new Error(`Enter ${label}.`);
   if (text.length > maxLength) {
@@ -20,6 +23,9 @@ function readText(value, label, maxLength, required = false) {
 }
 
 function createMeeting(input) {
+  if (!input || typeof input !== "object" || Array.isArray(input)) {
+    throw new Error("Enter valid class meeting details.");
+  }
   if (!Array.isArray(input.days) || input.days.length === 0) {
     throw new Error("Choose at least one meeting day.");
   }
@@ -29,7 +35,8 @@ function createMeeting(input) {
   const days = MEETING_DAYS.filter(day => input.days.includes(day.value))
     .map(day => day.value);
 
-  if (!TIME_PATTERN.test(input.startTime) || !TIME_PATTERN.test(input.endTime)) {
+  if (typeof input.startTime !== "string" || typeof input.endTime !== "string"
+      || !TIME_PATTERN.test(input.startTime) || !TIME_PATTERN.test(input.endTime)) {
     throw new Error("Enter a start time and an end time.");
   }
   if (input.endTime <= input.startTime) {
@@ -46,8 +53,10 @@ function createMeeting(input) {
   };
 }
 
-// Manual entry and future importers can produce the same course structure.
-export function createCourse(input) {
+function normalizeCourse(input) {
+  if (!input || typeof input !== "object" || Array.isArray(input)) {
+    throw new Error("Enter valid course details.");
+  }
   const courseCode = readText(input.courseCode, "a course code", 30, true)
     .replace(/\s+/g, " ").toUpperCase();
   if (!Array.isArray(input.meetings) || input.meetings.length === 0) {
@@ -55,9 +64,18 @@ export function createCourse(input) {
   }
 
   return {
-    id: crypto.randomUUID(),
     courseCode,
     title: readText(input.title, "the course title", 100),
     meetings: input.meetings.map(createMeeting),
   };
+}
+
+// Manual entry and future importers can produce the same course structure.
+export function createCourse(input) {
+  return { id: crypto.randomUUID(), ...normalizeCourse(input) };
+}
+
+export function restoreCourse(input) {
+  const course = normalizeCourse(input);
+  return { id: readText(input.id, "the saved course ID", 100, true), ...course };
 }

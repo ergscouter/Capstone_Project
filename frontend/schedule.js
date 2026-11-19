@@ -1,6 +1,8 @@
 import { createCourse, MEETING_DAYS } from "./schedule-model.js";
+import { loadSchedule, saveSchedule } from "./schedule-storage.js";
 
-const courses = [];
+let courses = [];
+let savingPaused = false;
 const buildingsByCode = new Map();
 const form = document.getElementById("schedule-form");
 const buildingSelect = document.getElementById("meeting-building");
@@ -9,6 +11,44 @@ const addButton = document.getElementById("schedule-add");
 const feedback = document.getElementById("schedule-feedback");
 const courseList = document.getElementById("schedule-list");
 const emptyMessage = document.getElementById("schedule-empty");
+const storageStatus = document.getElementById("schedule-storage-status");
+
+function showStorageStatus(message, isError = false) {
+  storageStatus.textContent = message;
+  storageStatus.classList.toggle("error", isError);
+}
+
+function restoreSavedSchedule() {
+  try {
+    courses = loadSchedule();
+    savingPaused = false;
+    showStorageStatus("Classes save automatically in this browser on this device.");
+  } catch {
+    // Leave the stored value untouched if it cannot be read or validated.
+    savingPaused = true;
+    showStorageStatus(
+      "Saved classes could not be opened. Existing saved data has been kept. "
+      + "Saving is paused; classes added here will be lost on refresh. "
+      + "Check that browser storage is allowed, then refresh to try again.",
+      true,
+    );
+  }
+  renderSchedule();
+}
+
+function saveCurrentSchedule() {
+  if (savingPaused) return;
+  try {
+    saveSchedule(courses);
+    showStorageStatus("Schedule saved in this browser on this device.");
+  } catch {
+    showStorageStatus(
+      "Your latest changes could not be saved. They will be lost on refresh. "
+      + "Check that browser storage is allowed and has space available.",
+      true,
+    );
+  }
+}
 
 function formatTime(time) {
   const [hours, minutes] = time.split(":");
@@ -88,6 +128,7 @@ form.addEventListener("submit", event => {
       courses.push(course);
     }
 
+    saveCurrentSchedule();
     renderSchedule();
     form.reset();
     feedback.textContent = `Added a meeting for ${course.courseCode}.`;
@@ -121,8 +162,10 @@ async function loadScheduleBuildings() {
 
   buildingSelect.disabled = false;
   addButton.disabled = false;
+  renderSchedule();
 }
 
+restoreSavedSchedule();
 loadScheduleBuildings().catch(() => {
   buildingSelect.options[0].textContent = "Buildings unavailable";
   buildingStatus.textContent = "Could not load buildings. Refresh the page to try again.";

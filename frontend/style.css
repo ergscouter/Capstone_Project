@@ -170,7 +170,8 @@ button {
   margin: 0;
 }
 
-.error {
+.error,
+.schedule-note.error {
   color: #a11b1b;
 }
 

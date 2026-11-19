@@ -16,6 +16,7 @@ What works today:
 - Leaflet map of campus buildings with click-to-view details
 - Search by building name or code, with zoom to the building
 - Manual class entry and a schedule list, including multiple meeting patterns per course
+- Automatic schedule saving and restoration in the same browser
 
 ## Schedule entry
 
@@ -24,9 +25,22 @@ days, start/end times, building, and optional room. Enter the same course code
 again to add another meeting pattern for that course, such as a lecture and lab.
 Identical meetings are rejected.
 
-This first version supports scheduled, in-person meetings. Classes stay in page
-memory and are cleared on refresh; automatic saving and editing are next steps.
+This version supports scheduled, in-person meetings. Classes save automatically
+after each addition and return when the page is refreshed or reopened in the
+same browser profile at the same site address. Editing is a next step.
 Schedule entries are not sent to the server, and no Eagle Eye account is needed.
+
+`frontend/schedule-storage.js` handles browser `localStorage` separately from the
+form. It stores a version number and the course list under `eagle-eye.schedule`,
+validates saved records before using them, and preserves each course ID.
+If saved data cannot be opened, it is kept unchanged and saving pauses;
+the page shows a warning. Failed writes also show a warning rather than claiming
+that changes were saved.
+
+Saving applies to this browser and device; it does not sync across devices.
+Clearing site data removes the schedule. Private browsing or browser settings may
+remove it when the session ends. A different site address or port has separate
+browser storage.
 
 `frontend/schedule-model.js` defines the shared course format: `id`, `courseCode`,
 `title`, and a `meetings` array. Each meeting has `days` (`mon` through `sun`),
