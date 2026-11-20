@@ -1,5 +1,7 @@
 // Campus Buddy - Sprint 1 map view: shows UNT buildings, search, and building details.
 
+import { registerBuildingNavigator } from "./map-navigation.js";
+
 const CAMPUS_CENTER = [33.2105, -97.1475];
 
 const map = L.map("map").setView(CAMPUS_CENTER, 16);
@@ -9,6 +11,7 @@ L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
 }).addTo(map);
 
 const markers = new Map(); // building code -> Leaflet marker
+const buildingsByCode = new Map();
 const detailsPanel = document.getElementById("details");
 const searchForm = document.getElementById("search-form");
 const searchInput = document.getElementById("search-input");
@@ -83,6 +86,7 @@ async function loadBuildings() {
   const buildings = await response.json();
 
   for (const building of buildings) {
+    buildingsByCode.set(building.code, building);
     if (building.lat == null || building.lon == null) continue; // no map point
     const marker = L.circleMarker([building.lat, building.lon], {
       radius: 6,
@@ -111,6 +115,24 @@ searchForm.addEventListener("submit", async (event) => {
   }
 });
 
-loadBuildings().catch((error) => {
+const buildingsReady = loadBuildings();
+
+registerBuildingNavigator(async buildingCode => {
+  await buildingsReady;
+  const building = buildingsByCode.get(buildingCode);
+  if (!building) throw new Error("This building could not be found on the map.");
+  if (!markers.has(buildingCode)) {
+    throw new Error("A map location is not available for this building.");
+  }
+
+  focusBuilding(building);
+  document.querySelector(".sidebar").scrollTop = 0;
+  const mapElement = document.getElementById("map");
+  mapElement.focus({ preventScroll: true });
+  mapElement.scrollIntoView({ behavior: "smooth", block: "start" });
+  return building.name;
+});
+
+buildingsReady.catch((error) => {
   detailsPanel.textContent = error.message;
 });

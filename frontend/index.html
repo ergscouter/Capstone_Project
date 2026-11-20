@@ -18,13 +18,74 @@
   </header>
 
   <main class="layout">
-    <div id="map" aria-label="Campus map"></div>
-    <aside id="details" aria-live="polite">
-      <p>Select a building on the map or search for one to see its details.</p>
+    <div id="map" aria-label="Campus map" tabindex="0"></div>
+    <aside class="sidebar">
+      <section id="details" aria-live="polite">
+        <p>Select a building on the map or search for one to see its details.</p>
+      </section>
+
+      <section id="schedule" aria-labelledby="schedule-heading">
+        <h2 id="schedule-heading">My Schedule</h2>
+        <p>Add your class meetings below. Use the same course code to add another meeting, such as a lab.</p>
+
+        <form id="schedule-form">
+          <p id="schedule-edit-status" class="schedule-note" role="status" hidden></p>
+          <label for="course-code">Course code</label>
+          <input id="course-code" name="courseCode" type="text" placeholder="CSCE 4901" maxlength="30" required>
+
+          <label for="course-title">Course title (optional)</label>
+          <input id="course-title" name="title" type="text" maxlength="100">
+
+          <fieldset>
+            <legend>Meeting days</legend>
+            <div class="meeting-days">
+              <label><input type="checkbox" name="days" value="mon"> Mon</label>
+              <label><input type="checkbox" name="days" value="tue"> Tue</label>
+              <label><input type="checkbox" name="days" value="wed"> Wed</label>
+              <label><input type="checkbox" name="days" value="thu"> Thu</label>
+              <label><input type="checkbox" name="days" value="fri"> Fri</label>
+              <label><input type="checkbox" name="days" value="sat"> Sat</label>
+              <label><input type="checkbox" name="days" value="sun"> Sun</label>
+            </div>
+          </fieldset>
+
+          <div class="meeting-times">
+            <div>
+              <label for="meeting-start">Start time</label>
+              <input id="meeting-start" name="startTime" type="time" required>
+            </div>
+            <div>
+              <label for="meeting-end">End time</label>
+              <input id="meeting-end" name="endTime" type="time" required>
+            </div>
+          </div>
+
+          <label for="meeting-building">Building</label>
+          <select id="meeting-building" name="buildingCode" required disabled>
+            <option value="">Loading buildings...</option>
+          </select>
+          <p id="schedule-buildings-status" role="status"></p>
+
+          <label for="meeting-room">Room (optional)</label>
+          <input id="meeting-room" name="room" type="text" maxlength="30">
+
+          <div class="schedule-form-actions">
+            <button id="schedule-add" type="submit" disabled>Add class meeting</button>
+            <button id="schedule-cancel" type="button" hidden>Cancel editing</button>
+          </div>
+          <p id="schedule-feedback" role="status" aria-atomic="true"></p>
+        </form>
+
+        <h3>Your classes</h3>
+        <p id="schedule-storage-status" class="schedule-note" role="status" aria-atomic="true">Loading saved classes...</p>
+        <p id="schedule-empty">No classes added yet.</p>
+        <ul id="schedule-list"></ul>
+      </section>
     </aside>
   </main>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="app.js"></script>
+  <script type="module" src="app.js"></script>
+  <script type="module" src="schedule.js"></script>
 </body>
 </html>
