@@ -201,7 +201,8 @@ button {
 }
 
 .error,
-.schedule-note.error {
+.schedule-note.error,
+.saved-places-note.error {
   color: #a11b1b;
 }
 
@@ -224,7 +225,8 @@ button {
   margin: 0.5rem 0;
 }
 
-#saved-places-list span {
+#saved-places-list .saved-place-content {
+  flex: 1;
   min-width: 0;
   overflow-wrap: anywhere;
 }
@@ -236,6 +238,26 @@ button {
 
 #saved-places-list button {
   flex-shrink: 0;
+}
+
+#saved-places-list .saved-place-link {
+  max-width: 100%;
+  padding: 0;
+  border: none;
+  font: inherit;
+  text-align: left;
+  text-decoration: underline;
+  overflow-wrap: anywhere;
+}
+
+#saved-places-list .saved-place-link:disabled {
+  color: #555;
+  cursor: not-allowed;
+  text-decoration: none;
+}
+
+#saved-places-list p {
+  margin: 0.25rem 0;
 }
 
 #schedule-list {

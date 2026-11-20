@@ -28,10 +28,21 @@ its details. Saved buildings appear alphabetically in **Saved Places**. Remove
 one from the list or choose **Remove saved place** in its building details.
 Each building can appear only once.
 
-This first step keeps bookmarks in page memory, so refreshing clears them.
-Browser storage and map selection from the saved list are the next steps.
+Saved places automatically return after refreshing or reopening the app in the
+same browser profile at the same site address. Select a saved building's name to
+show it on the map. Buildings without usable coordinates or no longer in the
+campus list remain saved with a clear message, and can still be removed.
+
+Bookmarks use `eagle-eye.saved-places` in browser storage, separately from the
+schedule. Each update checks the latest saved list so changes from other tabs
+are kept, and open tabs update when another tab saves. Failed reads or writes
+keep existing saved data and show a message. Clearing site data removes bookmarks;
+they do not automatically sync across devices.
+
 `frontend/saved-places-model.js` defines bookmarks using `buildingCode` and
-`name`, separately from the map provider and UI.
+`name`, separately from the map provider and UI. `saved-places-storage.js`
+validates and saves records, and `saved-places.js` connects them to the page.
+Map selection uses the same `map-navigation.js` connector as class meetings.
 
 ## Schedule entry
 
