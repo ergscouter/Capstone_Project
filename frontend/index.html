@@ -24,6 +24,14 @@
         <p>Select a building on the map or search for one to see its details.</p>
       </section>
 
+      <section id="saved-places" aria-labelledby="saved-places-heading">
+        <h2 id="saved-places-heading">Saved Places</h2>
+        <p class="saved-places-note">Saved places clear when this page is refreshed for now.</p>
+        <p id="saved-places-empty">Select a building and choose Save place to bookmark it.</p>
+        <ul id="saved-places-list"></ul>
+        <p id="saved-places-feedback" role="status" aria-atomic="true"></p>
+      </section>
+
       <section id="schedule" aria-labelledby="schedule-heading">
         <h2 id="schedule-heading">My Schedule</h2>
         <p>Add your class meetings below. Use the same course code to add another meeting, such as a lab.</p>
@@ -87,5 +95,6 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script type="module" src="app.js"></script>
   <script type="module" src="schedule.js"></script>
+  <script type="module" src="saved-places.js"></script>
 </body>
 </html>

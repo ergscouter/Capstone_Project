@@ -19,6 +19,19 @@ What works today:
 - Automatic schedule saving and restoration in the same browser
 - Editing and deleting individual class meetings
 - Selecting a class meeting's building directly on the campus map
+- Saving and removing building bookmarks in a Saved Places list
+
+## Saved Places
+
+Select a building on the map or through search, then choose **Save place** in
+its details. Saved buildings appear alphabetically in **Saved Places**. Remove
+one from the list or choose **Remove saved place** in its building details.
+Each building can appear only once.
+
+This first step keeps bookmarks in page memory, so refreshing clears them.
+Browser storage and map selection from the saved list are the next steps.
+`frontend/saved-places-model.js` defines bookmarks using `buildingCode` and
+`name`, separately from the map provider and UI.
 
 ## Schedule entry
 

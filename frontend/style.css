@@ -81,11 +81,13 @@ button {
 }
 
 #details,
+#saved-places,
 #schedule {
   padding: 1rem;
 }
 
 #details h2,
+#saved-places h2,
 #schedule h2 {
   margin-top: 0;
 }
@@ -99,7 +101,8 @@ button {
   margin: 0;
 }
 
-#schedule {
+#schedule,
+#saved-places {
   border-top: 1px solid #ddd;
 }
 
@@ -202,9 +205,37 @@ button {
   color: #a11b1b;
 }
 
-.schedule-note {
+.schedule-note,
+.saved-places-note {
   color: #555;
   font-size: 0.9rem;
+}
+
+#saved-places-list {
+  list-style: none;
+  padding: 0;
+}
+
+#saved-places-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin: 0.5rem 0;
+}
+
+#saved-places-list span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.save-place-button,
+#saved-places-list button {
+  border: 1px solid #00853e;
+}
+
+#saved-places-list button {
+  flex-shrink: 0;
 }
 
 #schedule-list {
