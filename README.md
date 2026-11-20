@@ -155,6 +155,8 @@ use the installed Microsoft Edge. On other systems install Chromium first with
 
 The browser tests need an internet connection for Leaflet and the basemap. They
 also simulate unavailable services and blocked or unreadable browser storage.
+Saved Places checks cover saving/removing bookmarks, current building names,
+map selection, cross-tab changes, browser restart, and small-screen/touch use.
 Screenshots are written to `.test-artifacts/`, which is excluded from Git.
 
 To run just the backend/API checks:
