@@ -19,6 +19,30 @@ What works today:
 - Automatic schedule saving and restoration in the same browser
 - Editing and deleting individual class meetings
 - Selecting a class meeting's building directly on the campus map
+- Saving and removing building bookmarks in a Saved Places list
+
+## Saved Places
+
+Select a building on the map or through search, then choose **Save place** in
+its details. Saved buildings appear alphabetically in **Saved Places**. Remove
+one from the list or choose **Remove saved place** in its building details.
+Each building can appear only once.
+
+Saved places automatically return after refreshing or reopening the app in the
+same browser profile at the same site address. Select a saved building's name to
+show it on the map. Buildings without usable coordinates or no longer in the
+campus list remain saved with a clear message, and can still be removed.
+
+Bookmarks use `eagle-eye.saved-places` in browser storage, separately from the
+schedule. Each update checks the latest saved list so changes from other tabs
+are kept, and open tabs update when another tab saves. Failed reads or writes
+keep existing saved data and show a message. Clearing site data removes bookmarks;
+they do not automatically sync across devices.
+
+`frontend/saved-places-model.js` defines bookmarks using `buildingCode` and
+`name`, separately from the map provider and UI. `saved-places-storage.js`
+validates and saves records, and `saved-places.js` connects them to the page.
+Map selection uses the same `map-navigation.js` connector as class meetings.
 
 ## Schedule entry
 
@@ -131,6 +155,8 @@ use the installed Microsoft Edge. On other systems install Chromium first with
 
 The browser tests need an internet connection for Leaflet and the basemap. They
 also simulate unavailable services and blocked or unreadable browser storage.
+Saved Places checks cover saving/removing bookmarks, current building names,
+map selection, cross-tab changes, browser restart, and small-screen/touch use.
 Screenshots are written to `.test-artifacts/`, which is excluded from Git.
 
 To run just the backend/API checks:

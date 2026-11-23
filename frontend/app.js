@@ -1,6 +1,7 @@
 // Campus Buddy - Sprint 1 map view: shows UNT buildings, search, and building details.
 
 import { registerBuildingNavigator } from "./map-navigation.js";
+import { createSavePlaceButton } from "./saved-places.js";
 
 const CAMPUS_CENTER = [33.2105, -97.1475];
 
@@ -47,7 +48,7 @@ function showDetails(building) {
     list.append(term, description);
   }
 
-  detailsPanel.replaceChildren(heading, list);
+  detailsPanel.replaceChildren(heading, list, createSavePlaceButton(building));
 }
 
 function focusBuilding(building) {

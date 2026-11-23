@@ -22,7 +22,8 @@ def test_invalid_pending_intent_does_not_crash(client, intent):
 
 
 @pytest.mark.parametrize("filename", ["app.js", "schedule.js", "schedule-model.js",
-                                     "schedule-storage.js", "map-navigation.js"])
+                                     "schedule-storage.js", "map-navigation.js",
+                                     "saved-places.js", "saved-places-model.js", "saved-places-storage.js"])
 def test_browser_modules_are_served_as_javascript(client, filename):
     response = client.get(f"/{filename}")
     assert response.status_code == 200

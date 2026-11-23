@@ -338,7 +338,8 @@ def test_map_request_waits_for_building_markers(page, live_app):
 
     def handle(route):
         requests.append(route)
-        if len(requests) == 1:
+        # Saved Places loads first as a map dependency; the map loads second.
+        if len(requests) == 2:
             pending.append(route)
         else:
             route.continue_()
